@@ -27,7 +27,9 @@ export function OpportunityDetail({ opportunity, sameDomainIds }: OpportunityDet
     <article className="space-y-6">
       <header className="space-y-2">
         <div className="flex items-start justify-between gap-3">
-          <h2 className="text-xl font-semibold break-all">{opportunity.domain}</h2>
+          <h2 className="font-heading text-2xl font-bold tracking-tight break-all">
+            {opportunity.domain}
+          </h2>
           <StatusBadge status={opportunity.status} />
         </div>
         <OutboundLink href={opportunity.linkingPageUrl}>{opportunity.linkingPageTitle}</OutboundLink>
@@ -93,7 +95,7 @@ export function OpportunityDetail({ opportunity, sameDomainIds }: OpportunityDet
 
 function Fact({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="rounded-lg border px-3 py-2">
+    <div className="rounded-lg border bg-background px-3 py-2">
       <dt className="text-xs text-muted-foreground">{label}</dt>
       <dd className="truncate font-medium">{value}</dd>
     </div>

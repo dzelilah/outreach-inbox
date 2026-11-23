@@ -41,8 +41,9 @@ function OpportunityRow(props: { item: OpportunityListItem; href: string; select
       href={href}
       aria-current={selected ? "true" : undefined}
       className={cn(
-        "flex gap-3 px-4 py-3 hover:bg-muted/50 md:px-6",
-        selected && "bg-muted hover:bg-muted",
+        "flex gap-3 px-4 py-3 hover:bg-muted/60 md:px-6",
+        // Tinted background plus an orange stripe on the left; an inset shadow does not shift the content.
+        selected && "bg-accent shadow-[inset_3px_0_0_var(--primary)] hover:bg-accent",
       )}
     >
       <div className="w-10 shrink-0 text-center">

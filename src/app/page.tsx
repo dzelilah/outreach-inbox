@@ -1,4 +1,4 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Inbox as InboxIcon } from "lucide-react";
 import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
@@ -29,11 +29,18 @@ const LIST_WIDTH = "md:w-[26rem] md:shrink-0 lg:w-[32rem]";
 export default function InboxPage({ searchParams }: PageProps<"/">) {
   return (
     <div className="flex min-h-dvh flex-col md:h-dvh">
-      <header className="border-b px-4 py-3 md:px-6">
-        <h1 className="text-lg font-semibold">Outreach Inbox</h1>
-        <p className="text-sm text-muted-foreground">
-          Link-building opportunities, most relevant first.
-        </p>
+      <header className="flex items-center gap-3 border-b bg-card px-4 py-3 md:px-6">
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-accent text-primary">
+          <InboxIcon aria-hidden className="size-5" />
+        </span>
+        <div>
+          <h1 className="font-heading text-lg leading-tight font-bold tracking-tight">
+            Outreach Inbox
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Link-building opportunities, most relevant first.
+          </p>
+        </div>
       </header>
 
       <Suspense
@@ -105,7 +112,7 @@ async function Inbox({ searchParams }: Pick<PageProps<"/">, "searchParams">) {
 
       <section
         aria-label="Opportunity details"
-        className={cn("min-w-0 flex-1 md:overflow-y-auto", !selectedId && "hidden md:block")}
+        className={cn("min-w-0 flex-1 bg-card md:overflow-y-auto", !selectedId && "hidden md:block")}
       >
         {selectedId ? (
           <div className="mx-auto max-w-3xl space-y-4 p-4 md:p-6">
