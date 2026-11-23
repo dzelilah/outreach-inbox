@@ -24,71 +24,74 @@ export function OpportunityDetail({ opportunity, sameDomainIds }: OpportunityDet
   }
 
   return (
-    <article className="space-y-6">
-      <header className="space-y-2">
-        <div className="flex items-start justify-between gap-3">
-          <h2 className="font-heading text-2xl font-bold tracking-tight break-all">
-            {opportunity.domain}
-          </h2>
-          <StatusBadge status={opportunity.status} />
-        </div>
-        <OutboundLink href={opportunity.linkingPageUrl}>{opportunity.linkingPageTitle}</OutboundLink>
-        {opportunity.issues.length > 0 && (
-          <div className="flex flex-wrap gap-1">
-            {opportunity.issues.map((issue) => (
-              <QualityIssueBadge key={issue} issue={issue} />
-            ))}
+    // Two white cards on the warm page: the facts, then the draft and the decision.
+    <article className="space-y-4">
+      <section className="space-y-6 rounded-2xl border bg-card p-5 md:p-6">
+        <header className="space-y-2">
+          <div className="flex items-start justify-between gap-3">
+            <h2 className="text-2xl font-semibold tracking-tight break-all">{opportunity.domain}</h2>
+            <StatusBadge status={opportunity.status} />
           </div>
+          <OutboundLink href={opportunity.linkingPageUrl}>{opportunity.linkingPageTitle}</OutboundLink>
+          {opportunity.issues.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {opportunity.issues.map((issue) => (
+                <QualityIssueBadge key={issue} issue={issue} />
+              ))}
+            </div>
+          )}
+        </header>
+  
+        {warnings.length > 0 && (
+          <ul className="space-y-2">
+            {warnings.map((warning) => (
+              <li
+                key={warning}
+                className="flex gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900"
+              >
+                <TriangleAlert aria-hidden className="mt-0.5 size-4 shrink-0" />
+                {warning}
+              </li>
+            ))}
+          </ul>
         )}
-      </header>
-
-      {warnings.length > 0 && (
-        <ul className="space-y-2">
-          {warnings.map((warning) => (
-            <li
-              key={warning}
-              className="flex gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900"
-            >
-              <TriangleAlert aria-hidden className="mt-0.5 size-4 shrink-0" />
-              {warning}
-            </li>
-          ))}
-        </ul>
-      )}
-
-      <dl className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Fact label="Relevance score" value={opportunity.relevanceScore} />
-        <Fact label="Domain rating" value={opportunity.domainRating} />
-        <Fact label="Topic" value={opportunity.topic.trim()} />
-        <Fact label="Links to" value={opportunity.competitorLinked} />
-      </dl>
-
-      <section className="space-y-1">
-        <h3 className="text-sm font-medium">Contact</h3>
-        {!contactName && !contactLinkedinUrl ? (
-          <p className="text-sm text-muted-foreground">No contact found.</p>
-        ) : (
-          <>
-            {contactName && (
-              <p className="text-sm">
-                {contactName}
-                {contactRole && <span className="text-muted-foreground"> · {contactRole}</span>}
-              </p>
-            )}
-            {contactLinkedinUrl && <OutboundLink href={contactLinkedinUrl}>LinkedIn profile</OutboundLink>}
-          </>
-        )}
+  
+        <dl className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <Fact label="Relevance score" value={opportunity.relevanceScore} />
+          <Fact label="Domain rating" value={opportunity.domainRating} />
+          <Fact label="Topic" value={opportunity.topic.trim()} />
+          <Fact label="Links to" value={opportunity.competitorLinked} />
+        </dl>
+  
+        <section className="space-y-1">
+          <h3 className="eyebrow">Contact</h3>
+          {!contactName && !contactLinkedinUrl ? (
+            <p className="text-sm text-muted-foreground">No contact found.</p>
+          ) : (
+            <>
+              {contactName && (
+                <p className="text-sm">
+                  {contactName}
+                  {contactRole && <span className="text-muted-foreground"> · {contactRole}</span>}
+                </p>
+              )}
+              {contactLinkedinUrl && <OutboundLink href={contactLinkedinUrl}>LinkedIn profile</OutboundLink>}
+            </>
+          )}
+        </section>
       </section>
 
-      {/* The key gives every opportunity a fresh editor, so text never leaks between rows. */}
-      <DraftEditor
-        key={opportunity.id}
-        id={opportunity.id}
-        status={opportunity.status}
-        savedDraft={opportunity.draft}
-        originalDraft={opportunity.originalDraft}
-        canApprove={hasContact(opportunity)}
-      />
+      <section className="rounded-2xl border bg-card p-5 md:p-6">
+        {/* The key gives every opportunity a fresh editor, so text never leaks between rows. */}
+        <DraftEditor
+          key={opportunity.id}
+          id={opportunity.id}
+          status={opportunity.status}
+          savedDraft={opportunity.draft}
+          originalDraft={opportunity.originalDraft}
+          canApprove={hasContact(opportunity)}
+        />
+      </section>
     </article>
   );
 }
@@ -96,8 +99,8 @@ export function OpportunityDetail({ opportunity, sameDomainIds }: OpportunityDet
 function Fact({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="rounded-lg border bg-background px-3 py-2">
-      <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className="truncate font-medium">{value}</dd>
+      <dt className="eyebrow">{label}</dt>
+      <dd className="mt-0.5 truncate font-medium">{value}</dd>
     </div>
   );
 }

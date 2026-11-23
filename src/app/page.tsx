@@ -34,7 +34,7 @@ export default function InboxPage({ searchParams }: PageProps<"/">) {
           <InboxIcon aria-hidden className="size-5" />
         </span>
         <div>
-          <h1 className="font-heading text-lg leading-tight font-bold tracking-tight">
+          <h1 className="text-lg leading-tight font-semibold tracking-tight">
             Outreach Inbox
           </h1>
           <p className="text-sm text-muted-foreground">
@@ -91,7 +91,7 @@ async function Inbox({ searchParams }: Pick<PageProps<"/">, "searchParams">) {
       {/* On narrow screens the list and the detail take turns; on wide screens both show. */}
       <section
         aria-label="Opportunities"
-        className={cn("w-full md:block md:overflow-y-auto md:border-r", LIST_WIDTH, selectedId && "hidden")}
+        className={cn("w-full bg-card md:block md:overflow-y-auto md:border-r", LIST_WIDTH, selectedId && "hidden")}
       >
         <InboxToolbar
           leftToReview={countLeftToReview(visible)}
@@ -112,7 +112,7 @@ async function Inbox({ searchParams }: Pick<PageProps<"/">, "searchParams">) {
 
       <section
         aria-label="Opportunity details"
-        className={cn("min-w-0 flex-1 bg-card md:overflow-y-auto", !selectedId && "hidden md:block")}
+        className={cn("min-w-0 flex-1 md:overflow-y-auto", !selectedId && "hidden md:block")}
       >
         {selectedId ? (
           <div className="mx-auto max-w-3xl space-y-4 p-4 md:p-6">

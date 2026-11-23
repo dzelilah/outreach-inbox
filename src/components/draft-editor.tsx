@@ -46,7 +46,7 @@ export function DraftEditor({ id, status, savedDraft, originalDraft, canApprove 
     <div className="space-y-6">
       <section className="space-y-2">
         <div className="flex items-center justify-between gap-2">
-          <label htmlFor="draft" className="text-sm font-medium">
+          <label htmlFor="draft" className="eyebrow">
             Outreach draft
           </label>
           {isPending ? (
@@ -84,7 +84,7 @@ export function DraftEditor({ id, status, savedDraft, originalDraft, canApprove 
       </section>
 
       <section className="space-y-2 border-t pt-4">
-        <h3 className="text-sm font-medium">Decision</h3>
+        <h3 className="eyebrow">Decision</h3>
         <div className="flex flex-wrap gap-2">
           <Button
             onClick={() => run(() => approveDraft({ id, draft: text }))}

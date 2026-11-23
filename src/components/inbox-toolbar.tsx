@@ -23,17 +23,20 @@ type InboxToolbarProps = {
 export function InboxToolbar({ leftToReview, quality, counts, selectedId }: InboxToolbarProps) {
   return (
     // On wide screens the counter and the views share one row; on narrow screens they stack.
-    <div className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b bg-background px-4 py-2 md:px-6">
+    <div className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b bg-card px-4 py-2.5 md:px-6">
       <p aria-live="polite" className="text-sm">
         {leftToReview > 0 ? (
           <>
-            <span className="font-semibold tabular-nums">{leftToReview}</span> left to review
+            <span className="font-mono font-medium text-accent-foreground tabular-nums">
+              {leftToReview}
+            </span>{" "}
+            left to review
           </>
         ) : (
           <span className="font-medium">All caught up</span>
         )}
       </p>
-      <nav aria-label="Filter by quality" className="inline-flex rounded-lg bg-muted p-0.5">
+      <nav aria-label="Filter by quality" className="inline-flex rounded-lg border bg-card p-0.5">
         {QUALITY_VIEWS.map((view) => {
           const selected = view === quality;
           return (
@@ -44,12 +47,12 @@ export function InboxToolbar({ leftToReview, quality, counts, selectedId }: Inbo
               className={cn(
                 "rounded-md px-2.5 py-1 text-sm",
                 selected
-                  ? "bg-background font-medium text-foreground shadow-sm"
+                  ? "bg-accent font-medium text-accent-foreground"
                   : "text-muted-foreground hover:text-foreground",
               )}
             >
               {QUALITY_VIEW_LABELS[view]}
-              <span className="ml-1.5 text-xs text-muted-foreground tabular-nums">
+              <span className="ml-1.5 font-mono text-xs tabular-nums opacity-70">
                 {counts[view]}
               </span>
             </Link>

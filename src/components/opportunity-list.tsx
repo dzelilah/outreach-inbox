@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { QualityIssueBadge, StatusBadge } from "@/components/badges";
+import { QualityIssueBadge, StatusBadge, TopicChip } from "@/components/badges";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Opportunity } from "@/generated/prisma/client";
 import { inboxHref } from "@/lib/inbox-url";
@@ -17,7 +17,7 @@ type OpportunityListProps = {
 /** Renders the opportunities in the order it receives them. Each row links to its detail. */
 export function OpportunityList({ items, quality, selectedId }: OpportunityListProps) {
   return (
-    <ul className="divide-y">
+    <ul className="space-y-1 p-2">
       {items.map((item) => (
         <li key={item.id}>
           <OpportunityRow
@@ -41,16 +41,21 @@ function OpportunityRow(props: { item: OpportunityListItem; href: string; select
       href={href}
       aria-current={selected ? "true" : undefined}
       className={cn(
-        "flex gap-3 px-4 py-3 hover:bg-muted/60 md:px-6",
-        // Tinted background plus an orange stripe on the left; an inset shadow does not shift the content.
-        selected && "bg-accent shadow-[inset_3px_0_0_var(--primary)] hover:bg-accent",
+        "flex gap-3 rounded-lg px-3 py-3 hover:bg-muted/60 md:px-4",
+        // The open row is a tinted tile, like the active item in the Moonrank sidebar.
+        selected && "bg-accent hover:bg-accent",
       )}
     >
-      <div className="w-10 shrink-0 text-center">
-        <p className={cn("text-lg leading-6 font-semibold tabular-nums", muted)}>
+      <div className="flex w-11 shrink-0 flex-col items-center gap-1">
+        <span
+          className={cn(
+            "w-full rounded-md border bg-card py-0.5 text-center font-mono text-sm font-medium tabular-nums",
+            muted,
+          )}
+        >
           {item.relevanceScore}
-        </p>
-        <p className="text-[10px] tracking-wide text-muted-foreground uppercase">Score</p>
+        </span>
+        <span className="eyebrow">Score</span>
       </div>
 
       <div className="min-w-0 flex-1">
@@ -59,9 +64,11 @@ function OpportunityRow(props: { item: OpportunityListItem; href: string; select
           <StatusBadge status={item.status} />
         </div>
         <p className="truncate text-sm text-muted-foreground">{item.linkingPageTitle}</p>
-        <p className="mt-1 text-xs text-muted-foreground">
-          DR {item.domainRating} · {item.topic.trim()} · links to {item.competitorLinked}
-        </p>
+        <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+          <TopicChip topic={item.topic} />
+          <span>DR {item.domainRating}</span>
+          <span>· links to {item.competitorLinked}</span>
+        </div>
         {item.issues.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-1">
             {item.issues.map((issue) => (
@@ -87,10 +94,10 @@ export function ListEmptyState({ title, children }: { title: string; children: R
 export function OpportunityListSkeleton() {
   const rows = ["a", "b", "c", "d", "e", "f"];
   return (
-    <div className="divide-y" aria-busy="true" aria-label="Loading opportunities">
+    <div className="space-y-1 p-2" aria-busy="true" aria-label="Loading opportunities">
       {rows.map((key) => (
-        <div key={key} className="flex gap-3 px-4 py-3 md:px-6">
-          <Skeleton className="size-10 shrink-0" />
+        <div key={key} className="flex gap-3 px-3 py-3 md:px-4">
+          <Skeleton className="h-6 w-11 shrink-0" />
           <div className="flex-1 space-y-2">
             <Skeleton className="h-4 w-1/2" />
             <Skeleton className="h-3 w-4/5" />
