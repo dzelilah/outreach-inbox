@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -10,4 +5,33 @@ generator client {
 
 datasource db {
   provider = "sqlite"
+}
+
+enum Status {
+  TO_REVIEW
+  APPROVED
+  SKIPPED
+  DONE
+}
+
+/// A link-building opportunity: a page that links to a competitor.
+/// Quality flags (low DR, missing contact, off-topic) are derived in code, not stored.
+model Opportunity {
+  id                 String   @id
+  domain             String
+  domainRating       Int
+  linkingPageTitle   String
+  linkingPageUrl     String
+  competitorLinked   String
+  contactName        String?
+  contactRole        String?
+  contactLinkedinUrl String?
+  relevanceScore     Int
+  topic              String
+  alreadyContacted   Boolean  @default(false)
+  /// Draft from the seed data, kept for "Reset to original".
+  originalDraft      String
+  draft              String
+  status             Status   @default(TO_REVIEW)
+  updatedAt          DateTime @updatedAt
 }
