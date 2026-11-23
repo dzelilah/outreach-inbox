@@ -1,23 +1,30 @@
 import type { DraftRewriter, RewriteInput } from "./types";
 
 /**
- * Rewrites a draft with a fixed template, without any network call. The same
- * input always gives the same text: a tighter opening, the same contact, page
- * title, competitor and links, one clear call to action, about 80 words.
+ * Rewrites a draft without any network call, by replacing the standard phrases
+ * of the seed drafts: a tighter opening and one clear call to action. All other
+ * text, such as names, links and the user's own edits, stays as it is.
  */
-export function mockRewrite({ draft, contactName, linkingPageTitle, competitorLinked }: RewriteInput) {
-  const links = draft.match(/https?:\/\/\S+/g) ?? [];
-  return [
-    `Hi ${contactName ?? "there"},`,
-    `Your article "${linkingPageTitle}" is a clear guide, and I noticed it links to ${competitorLinked}.`,
-    "Moonrank shows brands how they appear in AI answers from ChatGPT, Perplexity and Gemini, so it could be a useful addition for your readers.",
-    ...(links.length > 0 ? [`For reference: ${links.join(" ")}`] : []),
-    "Would you be open to adding Moonrank to the article? I can send a short summary or data you are welcome to quote.",
-    "Thanks!",
-  ].join("\n\n");
+export function mockRewrite({ draft, linkingPageTitle, competitorLinked }: RewriteInput) {
+  const phrases = [
+    [` I enjoyed "${linkingPageTitle}".`, `\n\nYour article "${linkingPageTitle}" caught my eye.`],
+    [`You link to ${competitorLinked}; Moonrank`, `It already links to ${competitorLinked}. Moonrank`],
+    [
+      "Would you consider including it? Happy to share data your readers might find useful.",
+      "\nWould you be open to adding Moonrank to the article? I can share data your readers might find useful.",
+    ],
+  ];
+  // The replacement is a function so that a "$" in a page title is not read as a replace() pattern.
+  return phrases.reduce((text, [from, to]) => text.replace(from, () => to), draft);
 }
 
 export const mockRewriter: DraftRewriter = {
   name: "mock",
-  rewrite: async (input) => mockRewrite(input),
+  async rewrite(input) {
+    const text = mockRewrite(input);
+    if (text === input.draft) {
+      throw new Error("The mock found no standard phrases left to rewrite, so the draft is unchanged.");
+    }
+    return text;
+  },
 };

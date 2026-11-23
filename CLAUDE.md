@@ -95,7 +95,7 @@ The user asked for this explicitly: solve every problem the simplest way that wo
 ## AI draft rewriting
 
 - Providers implement one `DraftRewriter` interface in `src/lib/rewrite/`.
-- `LLM_PROVIDER=mock` is the default. The mock is deterministic: a tighter opening, the same names, page title, competitor and links, a clear call to action, about 80 words.
+- `LLM_PROVIDER=mock` is the default. The mock is deterministic: it replaces the standard phrases of the seed drafts with a tighter opening and a clear call to action, and keeps everything else, including the user's own edits.
 - `LLM_PROVIDER=anthropic` is opt-in, because the assignment allows using your own key. It is the only code that may send data out (the draft and the opportunity's page title, competitor and contact name), and the README must say so. The provider is chosen explicitly, never inferred from a key being present.
 - Rewritten text goes into the editor as an unsaved change. The user must review it and then save or approve it. Never auto-save, auto-approve or send generated text.
 

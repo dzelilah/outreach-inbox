@@ -84,10 +84,11 @@ export function DraftEditor(props: DraftEditorProps) {
   }
 
   return (
-    <article className="space-y-4">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+    <article className="@container space-y-4">
+      {/* No wrapping: the status stays in the top right corner and a long title wraps instead. */}
+      <div className="flex items-start justify-between gap-3">
         {header}
-        <div className="space-y-1 text-right">
+        <div className="max-w-32 shrink-0 space-y-1 text-right @md:max-w-none">
           <StatusMenu
             status={status}
             disabled={isPending}
@@ -213,7 +214,7 @@ function StatusMenu({ status, disabled, approveBlockedBy, onChange }: StatusMenu
                   key={option.status}
                   value={option.status}
                   disabled={blockedBy !== null}
-                  className="flex cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm outline-none data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50 data-[highlighted]:bg-muted"
+                  className="flex cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm outline-none data-disabled:cursor-not-allowed data-disabled:opacity-50 data-highlighted:bg-muted"
                 >
                   <span aria-hidden className={cn("size-2 rounded-full", option.dot)} />
                   {option.label}

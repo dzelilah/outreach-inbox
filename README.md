@@ -74,7 +74,7 @@ That gives 41 relevant rows, or 39 with contacted rows hidden.
 
 Two providers implement one `DraftRewriter` interface in [`src/lib/rewrite/`](src/lib/rewrite/):
 
-- **`mock` (default):** a fixed template with no network call. Same input, same output. It keeps the contact, page title, competitor and any links.
+- **`mock` (default):** no AI and no network call. It replaces the standard phrases of the seed drafts with a tighter opening and one clear call to action. Everything else stays, including your own edits and links. Same input, same output. If no standard phrase is left, it says so and leaves the draft unchanged.
 - **`anthropic` (opt-in):** calls Claude (`claude-opus-5-5` by default) with your own key. To use it, set this in `.env` and restart `npm run dev`:
 
   ```bash
@@ -94,7 +94,7 @@ The provider is chosen only by `LLM_PROVIDER`. A key that happens to be set does
 - **Server-side fallback models for the Anthropic call.** One plain call is enough for an optional feature.
 - **End-to-end tests.** The rules have unit tests; the flows were checked by hand in the browser.
 
-Not tested: a real call to Claude, because I did not use a key. The error path was tested with the API pointed at a local address, so nothing left the machine.
+Not tested: a real call to Claude, because I did not use a key. Instead, the Anthropic provider was run against a fake server on this machine, with a fake key: a normal answer, a wrong key, a refusal, an empty answer and a missing key are all handled. Nothing left the machine and no paid call was made.
 
 ## Next with more time
 

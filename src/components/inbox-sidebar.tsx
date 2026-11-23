@@ -40,7 +40,7 @@ export function InboxSidebar({ filters, counts, shown, leftToReview, selectedId 
   const reviewed = shown - leftToReview;
 
   return (
-    <aside className="hidden w-60 shrink-0 flex-col gap-6 border-r bg-card p-4 md:flex">
+    <aside className="hidden w-60 shrink-0 flex-col gap-6 border-r bg-card p-4 xl:flex">
       <Brand />
 
       <nav aria-label="Views" className="space-y-1">

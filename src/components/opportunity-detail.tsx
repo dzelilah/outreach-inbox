@@ -48,16 +48,16 @@ export function OpportunityDetail({ opportunity, sameDomainIds }: OpportunityDet
       canApprove={hasContact(opportunity)}
       rewriterName={getRewriter().name}
       header={
-        <header className="flex items-start gap-4">
-          {/* Initials of the domain; no logo or favicon is fetched from the site. */}
+        <header className="flex min-w-0 flex-1 items-start gap-4">
+          {/* Initials of the domain; no logo or favicon is fetched from the site. Hidden when the pane is narrow. */}
           <span
             aria-hidden
-            className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary font-semibold text-primary-foreground uppercase"
+            className="hidden size-12 shrink-0 items-center justify-center rounded-full bg-primary font-semibold text-primary-foreground uppercase @md:flex"
           >
             {opportunity.domain.slice(0, 2)}
           </span>
           <div className="min-w-0 flex-1 space-y-1">
-            <h2 className="text-2xl font-semibold tracking-tight break-all">{opportunity.domain}</h2>
+            <h2 className="text-lg font-semibold tracking-tight break-all @md:text-2xl">{opportunity.domain}</h2>
             <OutboundLink href={opportunity.linkingPageUrl}>{opportunity.linkingPageTitle}</OutboundLink>
           </div>
         </header>
