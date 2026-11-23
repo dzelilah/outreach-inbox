@@ -47,20 +47,27 @@ describe("applyFilters", () => {
   const items = seedRows.map((r) => ({ ...r, issues: getQualityIssues(r) }));
 
   it("shows the 41 rows without issues in the relevant view", () => {
-    const visible = applyFilters(items, { quality: "relevant" });
+    const visible = applyFilters(items, { quality: "relevant", hideContacted: false });
     expect(visible).toHaveLength(41);
     expect(visible.every((item) => item.issues.length === 0)).toBe(true);
   });
 
   it("shows all 50 rows in the all view", () => {
-    expect(applyFilters(items, { quality: "all" })).toHaveLength(50);
+    expect(applyFilters(items, { quality: "all", hideContacted: false })).toHaveLength(50);
   });
 
   it("shows only the 9 low-quality rows in the low view", () => {
-    const visible = applyFilters(items, { quality: "low" });
+    const visible = applyFilters(items, { quality: "low", hideContacted: false });
     expect(visible.map((item) => item.id).sort()).toEqual(
       ["op_01", "op_03", "op_04", "op_05", "op_07", "op_08", "op_16", "op_25", "op_30"],
     );
+  });
+
+  it("hides the two already-contacted rows when asked", () => {
+    const visible = applyFilters(items, { quality: "relevant", hideContacted: true });
+    expect(visible).toHaveLength(39);
+    expect(visible.some((item) => item.id === "op_10" || item.id === "op_12")).toBe(false);
+    expect(applyFilters(items, { quality: "all", hideContacted: true })).toHaveLength(48);
   });
 });
 

@@ -1,28 +1,29 @@
 import Link from "next/link";
-import { QualityIssueBadge, StatusBadge, TopicChip } from "@/components/badges";
+import { ContactedBadge, QualityIssueBadge, StatusBadge, TopicChip } from "@/components/badges";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Opportunity } from "@/generated/prisma/client";
 import { inboxHref } from "@/lib/inbox-url";
-import type { QualityIssue, QualityView } from "@/lib/quality";
+import type { InboxFilters, QualityIssue } from "@/lib/quality";
 import { cn } from "@/lib/utils";
 
 export type OpportunityListItem = Opportunity & { issues: QualityIssue[] };
 
 type OpportunityListProps = {
   items: OpportunityListItem[];
-  quality: QualityView;
+  /** Kept in the row links, so opening a row keeps the filters. */
+  filters: InboxFilters;
   selectedId?: string;
 };
 
 /** Renders the opportunities in the order it receives them. Each row links to its detail. */
-export function OpportunityList({ items, quality, selectedId }: OpportunityListProps) {
+export function OpportunityList({ items, filters, selectedId }: OpportunityListProps) {
   return (
     <ul className="space-y-1 p-2">
       {items.map((item) => (
         <li key={item.id}>
           <OpportunityRow
             item={item}
-            href={inboxHref({ quality, id: item.id })}
+            href={inboxHref(filters, item.id)}
             selected={item.id === selectedId}
           />
         </li>
@@ -66,6 +67,7 @@ function OpportunityRow(props: { item: OpportunityListItem; href: string; select
         <p className="truncate text-sm text-muted-foreground">{item.linkingPageTitle}</p>
         <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
           <TopicChip topic={item.topic} />
+          {item.alreadyContacted && <ContactedBadge />}
           <span>DR {item.domainRating}</span>
           <span>· links to {item.competitorLinked}</span>
         </div>

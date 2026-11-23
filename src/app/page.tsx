@@ -60,7 +60,10 @@ export default function InboxPage({ searchParams }: PageProps<"/">) {
 
 async function Inbox({ searchParams }: Pick<PageProps<"/">, "searchParams">) {
   const params = await searchParams;
-  const filters: InboxFilters = { quality: qualityViewSchema.parse(params.quality) };
+  const filters: InboxFilters = {
+    quality: qualityViewSchema.parse(params.quality),
+    hideContacted: params.hideContacted === "1",
+  };
   const selectedId = typeof params.id === "string" ? params.id : undefined;
 
   // The SQLite driver is synchronous. Without connection(), Next.js would run
@@ -94,17 +97,19 @@ async function Inbox({ searchParams }: Pick<PageProps<"/">, "searchParams">) {
         className={cn("w-full bg-card md:block md:overflow-y-auto md:border-r", LIST_WIDTH, selectedId && "hidden")}
       >
         <InboxToolbar
+          filters={filters}
           leftToReview={countLeftToReview(visible)}
-          quality={filters.quality}
           selectedId={selectedId}
           counts={{ relevant: countFor("relevant"), all: countFor("all"), low: countFor("low") }}
         />
         {visible.length > 0 ? (
-          <OpportunityList items={visible} quality={filters.quality} selectedId={selectedId} />
+          <OpportunityList items={visible} filters={filters} selectedId={selectedId} />
         ) : (
           <ListEmptyState title="No opportunities match the filters">
             <Button asChild variant="outline" size="sm" className="mt-3">
-              <Link href={inboxHref({ quality: "all" })}>Show all opportunities</Link>
+              <Link href={inboxHref({ quality: "all", hideContacted: false })}>
+                Show all opportunities
+              </Link>
             </Button>
           </ListEmptyState>
         )}
@@ -117,7 +122,7 @@ async function Inbox({ searchParams }: Pick<PageProps<"/">, "searchParams">) {
         {selectedId ? (
           <div className="mx-auto max-w-3xl space-y-4 p-4 md:p-6">
             <Button asChild variant="ghost" size="sm" className="-ml-2 md:hidden">
-              <Link href={inboxHref({ quality: filters.quality })}>
+              <Link href={inboxHref(filters)}>
                 <ArrowLeft aria-hidden />
                 Back to list
               </Link>

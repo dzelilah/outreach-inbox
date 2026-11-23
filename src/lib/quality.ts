@@ -48,11 +48,15 @@ export const QUALITY_VIEWS = ["relevant", "all", "low"] as const;
 export type QualityView = (typeof QUALITY_VIEWS)[number];
 
 /** Filters the user can change. They live in the URL. */
-export type InboxFilters = { quality: QualityView };
+export type InboxFilters = { quality: QualityView; hideContacted: boolean };
 
 /** Keeps the rows the filters allow. */
-export function applyFilters<T extends { issues: QualityIssue[] }>(items: T[], filters: InboxFilters) {
+export function applyFilters<T extends { issues: QualityIssue[]; alreadyContacted: boolean }>(
+  items: T[],
+  filters: InboxFilters,
+) {
   return items.filter((item) => {
+    if (filters.hideContacted && item.alreadyContacted) return false;
     const lowQuality = item.issues.length > 0;
     if (filters.quality === "relevant") return !lowQuality;
     if (filters.quality === "low") return lowQuality;

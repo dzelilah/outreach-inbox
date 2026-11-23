@@ -1,13 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { inboxHref } from "./inbox-url";
 
+const defaults = { quality: "relevant", hideContacted: false } as const;
+
 describe("inboxHref", () => {
   it("leaves out default values", () => {
-    expect(inboxHref({ quality: "relevant" })).toBe("/");
-    expect(inboxHref({ quality: "relevant", id: "op_35" })).toBe("/?id=op_35");
+    expect(inboxHref(defaults)).toBe("/");
+    expect(inboxHref(defaults, "op_35")).toBe("/?id=op_35");
   });
 
-  it("keeps the quality view and the selected row", () => {
-    expect(inboxHref({ quality: "low", id: "op_01" })).toBe("/?quality=low&id=op_01");
+  it("keeps the filters and the selected row", () => {
+    expect(inboxHref({ quality: "low", hideContacted: true }, "op_01")).toBe(
+      "/?quality=low&hideContacted=1&id=op_01",
+    );
   });
 });
