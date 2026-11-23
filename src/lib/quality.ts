@@ -25,6 +25,10 @@ export type QualityIssue = keyof typeof QUALITY_ISSUE_LABELS;
 const normalize = (value: string) => value.trim().toLowerCase();
 const relevantTopics = new Set(RELEVANT_TOPICS.map(normalize));
 
+export function isRelevantTopic(topic: string) {
+  return relevantTopics.has(normalize(topic));
+}
+
 /** Without a name and a profile there is nobody to address the message to. */
 export function hasContact(opportunity: Pick<Opportunity, "contactName" | "contactLinkedinUrl">) {
   return Boolean(opportunity.contactName && opportunity.contactLinkedinUrl);
@@ -36,7 +40,7 @@ export function getQualityIssues(
   const issues: QualityIssue[] = [];
   if (opportunity.domainRating < MIN_DOMAIN_RATING) issues.push("LOW_DOMAIN_RATING");
   if (!hasContact(opportunity)) issues.push("MISSING_CONTACT");
-  if (!relevantTopics.has(normalize(opportunity.topic))) issues.push("OFF_TOPIC");
+  if (!isRelevantTopic(opportunity.topic)) issues.push("OFF_TOPIC");
   return issues;
 }
 

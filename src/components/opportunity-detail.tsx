@@ -1,7 +1,14 @@
-import { ExternalLink, TriangleAlert } from "lucide-react";
+import {
+  CircleCheck,
+  CircleMinus,
+  ExternalLink,
+  type LucideIcon,
+  TriangleAlert,
+} from "lucide-react";
 import { QualityIssueBadge, StatusBadge } from "@/components/badges";
 import { DraftEditor } from "@/components/draft-editor";
 import type { OpportunityListItem } from "@/components/opportunity-list";
+import { explainScore, type ScoreSignal } from "@/lib/explain";
 import { hasContact } from "@/lib/quality";
 
 type OpportunityDetailProps = {
@@ -41,7 +48,7 @@ export function OpportunityDetail({ opportunity, sameDomainIds }: OpportunityDet
             </div>
           )}
         </header>
-  
+
         {warnings.length > 0 && (
           <ul className="space-y-2">
             {warnings.map((warning) => (
@@ -55,14 +62,29 @@ export function OpportunityDetail({ opportunity, sameDomainIds }: OpportunityDet
             ))}
           </ul>
         )}
-  
+
         <dl className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <Fact label="Relevance score" value={opportunity.relevanceScore} />
           <Fact label="Domain rating" value={opportunity.domainRating} />
           <Fact label="Topic" value={opportunity.topic.trim()} />
           <Fact label="Links to" value={opportunity.competitorLinked} />
         </dl>
-  
+
+        <section className="space-y-2">
+          <h3 className="eyebrow">Why this score</h3>
+          <ul className="space-y-1.5">
+            {explainScore(opportunity).map((signal) => {
+              const { Icon, className } = SIGNAL_ICONS[signal.tone];
+              return (
+                <li key={signal.text} className="flex gap-2 text-sm">
+                  <Icon aria-hidden className={`mt-0.5 size-4 shrink-0 ${className}`} />
+                  {signal.text}
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+
         <section className="space-y-1">
           <h3 className="eyebrow">Contact</h3>
           {!contactName && !contactLinkedinUrl ? (
@@ -95,6 +117,13 @@ export function OpportunityDetail({ opportunity, sameDomainIds }: OpportunityDet
     </article>
   );
 }
+
+/** The text says what each signal means; the icon only repeats it. */
+const SIGNAL_ICONS: Record<ScoreSignal["tone"], { Icon: LucideIcon; className: string }> = {
+  good: { Icon: CircleCheck, className: "text-emerald-600" },
+  neutral: { Icon: CircleMinus, className: "text-muted-foreground" },
+  bad: { Icon: TriangleAlert, className: "text-amber-600" },
+};
 
 function Fact({ label, value }: { label: string; value: string | number }) {
   return (
