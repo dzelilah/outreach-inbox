@@ -1,29 +1,45 @@
 "use client";
 
-import { Sparkles } from "lucide-react";
-import { useEffect, useState, useTransition } from "react";
+import { Check, ChevronDown, CircleCheck, Mail, Sparkles } from "lucide-react";
+import { DropdownMenu } from "radix-ui";
+import { type ReactNode, useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { type ActionResult, approveDraft, rewriteDraft, saveDraft, setStatus } from "@/app/actions";
+import { STATUS_BADGES } from "@/components/badges";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import type { Status } from "@/generated/prisma/enums";
+import { cn } from "@/lib/utils";
+
+const STATUS_OPTIONS: { status: Status; label: string; dot: string }[] = [
+  { status: "TO_REVIEW", label: "To review", dot: "bg-orange-500" },
+  { status: "APPROVED", label: "Approved", dot: "bg-emerald-500" },
+  { status: "SKIPPED", label: "Skipped", dot: "bg-stone-400" },
+  { status: "DONE", label: "Done", dot: "bg-sky-500" },
+];
 
 type DraftEditorProps = {
   id: string;
   status: Status;
+  contactName: string | null;
   savedDraft: string;
   originalDraft: string;
   canApprove: boolean;
   /** Which rewriter the button uses, e.g. "mock". */
   rewriterName: string;
+  /** The domain heading; the status dropdown sits next to it. */
+  header: ReactNode;
+  /** Facts shown between the heading and the draft. */
+  children: ReactNode;
 };
 
 /**
- * Edits the draft and sets the status. Approve lives here because it sends the
- * text that is in the editor right now. Nothing is saved automatically.
+ * Edits the draft and sets the status. The status dropdown lives here because
+ * approving sends the text that is in the editor right now. Nothing is saved automatically.
  */
 export function DraftEditor(props: DraftEditorProps) {
-  const { id, status, savedDraft, originalDraft, canApprove, rewriterName } = props;
+  const { id, status, contactName, savedDraft, originalDraft, canApprove, rewriterName, header, children } =
+    props;
   const [text, setText] = useState(savedDraft);
   const [isPending, startAction] = useTransition();
   const isDirty = text !== savedDraft;
@@ -46,6 +62,13 @@ export function DraftEditor(props: DraftEditorProps) {
     });
   }
 
+  // Approve saves the text in the editor together with the status; the others only change the status.
+  function changeStatus(target: Status) {
+    run(() =>
+      target === "APPROVED" ? approveDraft({ id, draft: text }) : setStatus({ id, status: target }),
+    );
+  }
+
   // The rewrite only replaces the text in the editor as an unsaved change;
   // the user reviews it and then saves, approves or discards it.
   function rewrite() {
@@ -61,18 +84,46 @@ export function DraftEditor(props: DraftEditorProps) {
   }
 
   return (
-    <div className="space-y-6">
-      <section className="space-y-2">
-        <div className="flex items-center justify-between gap-2">
-          <label htmlFor="draft" className="eyebrow">
-            Outreach draft
-          </label>
-          {isPending ? (
-            <span className="text-xs text-muted-foreground">Working…</span>
-          ) : (
-            isDirty && <span className="text-xs font-medium text-amber-700">Unsaved changes</span>
-          )}
+    <article className="space-y-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        {header}
+        <div className="space-y-1 text-right">
+          <StatusMenu
+            status={status}
+            disabled={isPending}
+            approveBlockedBy={!canApprove ? "needs a contact" : isEmpty ? "draft is empty" : null}
+            onChange={changeStatus}
+          />
+          <p className="text-xs text-muted-foreground">
+            {canApprove ? "Approving saves the draft below." : "No contact, so it cannot be approved."}
+          </p>
         </div>
+      </div>
+
+      {children}
+
+      <section className="space-y-3 rounded-xl border bg-card p-4 md:p-5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <label htmlFor="draft" className="flex items-center gap-2 font-medium">
+            <Mail aria-hidden className="size-4 text-orange-500" />
+            Email draft
+          </label>
+          <Button
+            variant="outline"
+            size="sm"
+            className="border-orange-200 bg-accent text-accent-foreground hover:bg-orange-100"
+            onClick={rewrite}
+            disabled={isEmpty || isPending}
+          >
+            <Sparkles aria-hidden />
+            Rewrite with AI ({rewriterName})
+          </Button>
+        </div>
+
+        <p className="text-sm">
+          <span className="text-muted-foreground">To: </span>
+          {contactName ?? <span className="text-muted-foreground">no contact</span>}
+        </p>
 
         <Textarea
           id="draft"
@@ -81,69 +132,101 @@ export function DraftEditor(props: DraftEditorProps) {
           className="min-h-48 leading-relaxed"
         />
 
-        <div className="flex flex-wrap gap-2">
-          <Button
-            variant="outline"
-            onClick={() => run(() => saveDraft({ id, draft: text }))}
-            disabled={!isDirty || isEmpty || isPending}
-          >
-            Save draft
-          </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <p aria-live="polite" className="mr-auto text-xs">
+            {isPending ? (
+              <span className="text-muted-foreground">Working…</span>
+            ) : isDirty ? (
+              <span className="font-medium text-amber-700">Unsaved changes</span>
+            ) : (
+              <span className="inline-flex items-center gap-1 text-emerald-700">
+                <CircleCheck aria-hidden className="size-3.5" />
+                Draft saved
+              </span>
+            )}
+          </p>
           <Button variant="ghost" onClick={() => setText(savedDraft)} disabled={!isDirty || isPending}>
-            Discard changes
+            Discard
           </Button>
           {/* Puts the seed text back into the editor; the user still has to save it. */}
           {text !== originalDraft && (
-            <Button variant="ghost" onClick={() => setText(originalDraft)} disabled={isPending}>
+            <Button variant="outline" onClick={() => setText(originalDraft)} disabled={isPending}>
               Reset to original
             </Button>
           )}
-          <Button variant="outline" className="sm:ml-auto" onClick={rewrite} disabled={isEmpty || isPending}>
-            <Sparkles aria-hidden />
-            Rewrite with AI ({rewriterName})
+          <Button
+            onClick={() => run(() => saveDraft({ id, draft: text }))}
+            disabled={!isDirty || isEmpty || isPending}
+          >
+            Save
           </Button>
         </div>
       </section>
 
-      <section className="space-y-2 border-t pt-4">
-        <h3 className="eyebrow">Decision</h3>
-        <div className="flex flex-wrap gap-2">
-          <Button
-            onClick={() => run(() => approveDraft({ id, draft: text }))}
-            disabled={!canApprove || isEmpty || isPending || (status === "APPROVED" && !isDirty)}
+    </article>
+  );
+}
+
+type StatusMenuProps = {
+  status: Status;
+  disabled: boolean;
+  /** Why Approved cannot be picked right now, or null when it can. */
+  approveBlockedBy: string | null;
+  onChange: (status: Status) => void;
+};
+
+/** One status at a time, so a dropdown. Built on Radix, which handles keyboard and focus. */
+function StatusMenu({ status, disabled, approveBlockedBy, onChange }: StatusMenuProps) {
+  const current = STATUS_OPTIONS.find((option) => option.status === status);
+
+  return (
+    <DropdownMenu.Root>
+      <DropdownMenu.Trigger
+        disabled={disabled}
+        aria-label="Change status"
+        className={cn(
+          "inline-flex h-9 items-center gap-2 rounded-full px-4 text-sm font-medium outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-60",
+          STATUS_BADGES[status].className,
+        )}
+      >
+        {current?.label}
+        <ChevronDown aria-hidden className="size-4" />
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Portal>
+        <DropdownMenu.Content
+          align="end"
+          sideOffset={6}
+          className="z-50 min-w-52 rounded-xl border bg-popover p-1 text-popover-foreground shadow-lg"
+        >
+          {/* The value comes back as a string, so it is matched against the known options. */}
+          <DropdownMenu.RadioGroup
+            value={status}
+            onValueChange={(value) => {
+              const picked = STATUS_OPTIONS.find((option) => option.status === value);
+              if (picked && picked.status !== status) onChange(picked.status);
+            }}
           >
-            Approve
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => run(() => setStatus({ id, status: "SKIPPED" }))}
-            disabled={isPending || status === "SKIPPED"}
-          >
-            Skip
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => run(() => setStatus({ id, status: "DONE" }))}
-            disabled={isPending || status === "DONE"}
-          >
-            Mark done
-          </Button>
-          {status !== "TO_REVIEW" && (
-            <Button
-              variant="ghost"
-              onClick={() => run(() => setStatus({ id, status: "TO_REVIEW" }))}
-              disabled={isPending}
-            >
-              Back to review
-            </Button>
-          )}
-        </div>
-        <p className="text-xs text-muted-foreground">
-          {canApprove
-            ? "Approve saves the text above as the message to send. Nothing is sent from this app."
-            : "This opportunity has no contact, so it cannot be approved: there is nobody to send it to."}
-        </p>
-      </section>
-    </div>
+            {STATUS_OPTIONS.map((option) => {
+              const blockedBy = option.status === "APPROVED" ? approveBlockedBy : null;
+              return (
+                <DropdownMenu.RadioItem
+                  key={option.status}
+                  value={option.status}
+                  disabled={blockedBy !== null}
+                  className="flex cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm outline-none data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50 data-[highlighted]:bg-muted"
+                >
+                  <span aria-hidden className={cn("size-2 rounded-full", option.dot)} />
+                  {option.label}
+                  {blockedBy && <span className="text-xs text-muted-foreground">{blockedBy}</span>}
+                  <DropdownMenu.ItemIndicator className="ml-auto">
+                    <Check aria-hidden className="size-4" />
+                  </DropdownMenu.ItemIndicator>
+                </DropdownMenu.RadioItem>
+              );
+            })}
+          </DropdownMenu.RadioGroup>
+        </DropdownMenu.Content>
+      </DropdownMenu.Portal>
+    </DropdownMenu.Root>
   );
 }

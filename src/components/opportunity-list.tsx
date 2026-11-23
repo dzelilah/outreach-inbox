@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ContactedBadge, QualityIssueBadge, StatusBadge, TopicChip } from "@/components/badges";
+import { ContactedBadge, QualityIssueBadge, StatusBadge } from "@/components/badges";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Opportunity } from "@/generated/prisma/client";
 import { inboxHref } from "@/lib/inbox-url";
@@ -15,7 +15,10 @@ type OpportunityListProps = {
   selectedId?: string;
 };
 
-/** Renders the opportunities in the order it receives them. Each row links to its detail. */
+// Same compact columns on every screen: checkbox, opportunity, score, status.
+const COLUMNS = "grid grid-cols-[2.75rem_minmax(0,1fr)_3.5rem_6.5rem]";
+
+/** Renders the opportunities in the order it receives them, as rounded rows. */
 export function OpportunityList({ items, filters, selectedId }: OpportunityListProps) {
   return (
     <ul className="space-y-1 p-2">
@@ -25,19 +28,20 @@ export function OpportunityList({ items, filters, selectedId }: OpportunityListP
           <li
             key={item.id}
             className={cn(
-              "flex rounded-lg hover:bg-muted/60",
-              // The open row is a tinted tile, like the active item in the Moonrank sidebar.
-              selected && "bg-accent hover:bg-accent",
+              COLUMNS,
+              "rounded-xl px-1 hover:bg-muted/60",
+              // The open row is a tinted, rounded tile with a thin orange frame.
+              selected && "bg-accent ring-1 ring-orange-200 hover:bg-accent",
             )}
           >
             {/* Outside the link, so ticking the box does not open the row. Read by the bulk form. */}
-            <label className="flex shrink-0 cursor-pointer items-start py-4 pl-3 md:pl-4">
+            <label className="flex cursor-pointer items-start justify-center pt-4">
               <input
                 type="checkbox"
                 name="ids"
                 value={item.id}
                 aria-label={`Select ${item.domain}`}
-                className="size-4 accent-primary"
+                className="size-4 accent-orange-600"
               />
             </label>
             <OpportunityRow item={item} href={inboxHref(filters, item.id)} selected={selected} />
@@ -50,47 +54,36 @@ export function OpportunityList({ items, filters, selectedId }: OpportunityListP
 
 function OpportunityRow(props: { item: OpportunityListItem; href: string; selected: boolean }) {
   const { item, href, selected } = props;
-  // Low-quality rows stay in the list but are dimmed; the badges say why.
-  const muted = item.issues.length > 0 && "text-muted-foreground";
 
   return (
+    // The link spans the remaining columns and reuses them through subgrid.
     <Link
       href={href}
       aria-current={selected ? "true" : undefined}
-      className="flex min-w-0 flex-1 gap-3 py-3 pr-3 pl-2 md:pr-4"
+      className="col-span-3 grid grid-cols-subgrid items-center py-3 pr-3"
     >
-      <div className="flex w-11 shrink-0 flex-col items-center gap-1">
-        <span
-          className={cn(
-            "w-full rounded-md border bg-card py-0.5 text-center font-mono text-sm font-medium tabular-nums",
-            muted,
-          )}
-        >
-          {item.relevanceScore}
-        </span>
-        <span className="eyebrow">Score</span>
-      </div>
-
-      <div className="min-w-0 flex-1">
-        <div className="flex items-start justify-between gap-2">
-          <p className={cn("truncate font-medium", muted)}>{item.domain}</p>
-          <StatusBadge status={item.status} />
-        </div>
+      <div className="min-w-0 space-y-0.5 pr-3">
+        <p className="truncate font-semibold">{item.domain}</p>
         <p className="truncate text-sm text-muted-foreground">{item.linkingPageTitle}</p>
-        <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-          <TopicChip topic={item.topic} />
-          {item.alreadyContacted && <ContactedBadge />}
-          <span>DR {item.domainRating}</span>
-          <span>· links to {item.competitorLinked}</span>
-        </div>
-        {item.issues.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-1">
+        <p className="truncate text-xs text-muted-foreground">
+          DR {item.domainRating} · {item.topic.trim()}
+        </p>
+        {(item.issues.length > 0 || item.alreadyContacted) && (
+          <div className="flex flex-wrap gap-1 pt-1">
+            {item.alreadyContacted && <ContactedBadge />}
             {item.issues.map((issue) => (
               <QualityIssueBadge key={issue} issue={issue} />
             ))}
           </div>
         )}
       </div>
+      <span
+        title="Relevance score"
+        className="w-fit rounded-md bg-accent px-1.5 py-0.5 font-mono text-sm font-medium text-accent-foreground tabular-nums"
+      >
+        {item.relevanceScore}
+      </span>
+      <StatusBadge status={item.status} />
     </Link>
   );
 }
@@ -108,15 +101,12 @@ export function ListEmptyState({ title, children }: { title: string; children: R
 export function OpportunityListSkeleton() {
   const rows = ["a", "b", "c", "d", "e", "f"];
   return (
-    <div className="space-y-1 p-2" aria-busy="true" aria-label="Loading opportunities">
+    <div className="divide-y" aria-busy="true" aria-label="Loading opportunities">
       {rows.map((key) => (
-        <div key={key} className="flex gap-3 px-3 py-3 md:px-4">
-          <Skeleton className="h-6 w-11 shrink-0" />
-          <div className="flex-1 space-y-2">
-            <Skeleton className="h-4 w-1/2" />
-            <Skeleton className="h-3 w-4/5" />
-            <Skeleton className="h-3 w-2/3" />
-          </div>
+        <div key={key} className="space-y-2 px-4 py-3">
+          <Skeleton className="h-4 w-1/2" />
+          <Skeleton className="h-3 w-4/5" />
+          <Skeleton className="h-3 w-2/3" />
         </div>
       ))}
     </div>

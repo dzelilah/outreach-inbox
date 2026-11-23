@@ -1,8 +1,9 @@
-import { ArrowLeft, Inbox as InboxIcon } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { BulkSelectForm } from "@/components/bulk-select-form";
+import { Brand, InboxSidebar } from "@/components/inbox-sidebar";
 import { InboxToolbar } from "@/components/inbox-toolbar";
 import { OpportunityDetail } from "@/components/opportunity-detail";
 import {
@@ -25,37 +26,24 @@ import { qualityViewSchema } from "@/lib/schemas";
 import { countLeftToReview } from "@/lib/status";
 import { cn } from "@/lib/utils";
 
-const LIST_WIDTH = "md:w-[26rem] md:shrink-0 lg:w-[32rem]";
+const LIST_WIDTH = "md:w-[24rem] md:shrink-0 lg:w-[28rem] xl:w-[30rem]";
 
 export default function InboxPage({ searchParams }: PageProps<"/">) {
   return (
-    <div className="flex min-h-dvh flex-col md:h-dvh">
-      <header className="flex items-center gap-3 border-b bg-card px-4 py-3 md:px-6">
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-accent text-primary">
-          <InboxIcon aria-hidden className="size-5" />
-        </span>
-        <div>
-          <h1 className="text-lg leading-tight font-semibold tracking-tight">
-            Outreach Inbox
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Link-building opportunities, most relevant first.
-          </p>
+    <Suspense
+      fallback={
+        <div className="flex min-h-dvh flex-col">
+          <header className="border-b bg-card px-4 py-3">
+            <Brand />
+          </header>
+          <div className={LIST_WIDTH}>
+            <OpportunityListSkeleton />
+          </div>
         </div>
-      </header>
-
-      <Suspense
-        fallback={
-          <main className="flex-1">
-            <div className={cn("md:border-r", LIST_WIDTH)}>
-              <OpportunityListSkeleton />
-            </div>
-          </main>
-        }
-      >
-        <Inbox searchParams={searchParams} />
-      </Suspense>
-    </div>
+      }
+    >
+      <Inbox searchParams={searchParams} />
+    </Suspense>
   );
 }
 
@@ -74,6 +62,9 @@ async function Inbox({ searchParams }: Pick<PageProps<"/">, "searchParams">) {
   if (rows.length === 0) {
     return (
       <main className="flex-1">
+        <header className="border-b bg-card px-4 py-3">
+          <Brand />
+        </header>
         <ListEmptyState title="No opportunities yet">
           Run <code className="font-mono">npm run setup</code> to import the seed data.
         </ListEmptyState>
@@ -85,69 +76,94 @@ async function Inbox({ searchParams }: Pick<PageProps<"/">, "searchParams">) {
     .map((row) => ({ ...row, issues: getQualityIssues(row) }))
     .sort(compareByRelevance);
   const visible = applyFilters(items, filters);
+  const leftToReview = countLeftToReview(visible);
   // Each count is the number of rows that view would show.
   const countFor = (quality: QualityView) => applyFilters(items, { ...filters, quality }).length;
+  const counts = { relevant: countFor("relevant"), all: countFor("all"), low: countFor("low") };
   // Looked up in all rows, so an open opportunity stays open when a filter hides it.
   const selected = items.find((item) => item.id === selectedId);
 
   return (
-    <main className="flex min-h-0 flex-1">
-      {/* On narrow screens the list and the detail take turns; on wide screens both show. */}
-      <section
-        aria-label="Opportunities"
-        className={cn("w-full bg-card md:block md:overflow-y-auto md:border-r", LIST_WIDTH, selectedId && "hidden")}
-      >
-        <InboxToolbar
-          filters={filters}
-          leftToReview={countLeftToReview(visible)}
-          selectedId={selectedId}
-          counts={{ relevant: countFor("relevant"), all: countFor("all"), low: countFor("low") }}
-        />
-        {visible.length > 0 ? (
-          // The key changes with the filters, so changing a filter starts a fresh selection.
-          <BulkSelectForm key={inboxHref(filters)}>
-            <OpportunityList items={visible} filters={filters} selectedId={selectedId} />
-          </BulkSelectForm>
-        ) : (
-          <ListEmptyState title="No opportunities match the filters">
-            <Button asChild variant="outline" size="sm" className="mt-3">
-              <Link href={inboxHref({ quality: "all", hideContacted: false })}>
-                Show all opportunities
-              </Link>
-            </Button>
-          </ListEmptyState>
-        )}
-      </section>
+    <div className="flex min-h-dvh md:h-dvh">
+      <InboxSidebar
+        filters={filters}
+        counts={counts}
+        shown={visible.length}
+        leftToReview={leftToReview}
+        selectedId={selectedId}
+      />
 
-      <section
-        aria-label="Opportunity details"
-        className={cn("min-w-0 flex-1 md:overflow-y-auto", !selectedId && "hidden md:block")}
-      >
-        {selectedId ? (
-          <div className="mx-auto max-w-3xl space-y-4 p-4 md:p-6">
-            <Button asChild variant="ghost" size="sm" className="-ml-2 md:hidden">
-              <Link href={inboxHref(filters)}>
-                <ArrowLeft aria-hidden />
-                Back to list
-              </Link>
-            </Button>
-            {selected ? (
-              <OpportunityDetail
-                opportunity={selected}
-                sameDomainIds={findSameDomainIds(rows, selected.id)}
-              />
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="border-b bg-card px-4 py-3 xl:hidden">
+          <Brand />
+        </header>
+
+        <main className="flex min-h-0 flex-1">
+          {/* On narrow screens the list and the detail take turns; on wide screens both show. */}
+          <section
+            aria-label="Opportunities"
+            className={cn("w-full md:block md:overflow-y-auto md:border-r", LIST_WIDTH, selectedId && "hidden")}
+          >
+            {/* Below xl the filters sit above the list; from xl they are in the sidebar. */}
+            <InboxToolbar
+              filters={filters}
+              leftToReview={leftToReview}
+              selectedId={selectedId}
+              counts={counts}
+            />
+            <div className="sticky top-0 z-10 hidden items-baseline justify-between border-b bg-background/95 px-4 py-3 backdrop-blur xl:flex">
+              <p className="text-sm font-medium">
+                Showing {visible.length} of {items.length} opportunities
+              </p>
+              <p className="text-xs text-muted-foreground">Most relevant first</p>
+            </div>
+            {visible.length > 0 ? (
+              // The key changes with the filters, so changing a filter starts a fresh selection.
+              <BulkSelectForm key={inboxHref(filters)}>
+                <OpportunityList items={visible} filters={filters} selectedId={selectedId} />
+              </BulkSelectForm>
             ) : (
-              <ListEmptyState title="Opportunity not found">
-                It may have been removed, or the link is wrong.
+              <ListEmptyState title="No opportunities match the filters">
+                <Button asChild variant="outline" size="sm" className="mt-3">
+                  <Link href={inboxHref({ quality: "all", hideContacted: false })}>
+                    Show all opportunities
+                  </Link>
+                </Button>
               </ListEmptyState>
             )}
-          </div>
-        ) : (
-          <p className="flex h-full items-center justify-center p-6 text-sm text-muted-foreground">
-            Select an opportunity to see its details.
-          </p>
-        )}
-      </section>
-    </main>
+          </section>
+
+          <section
+            aria-label="Opportunity details"
+            className={cn("min-w-0 flex-1 md:overflow-y-auto", !selectedId && "hidden md:block")}
+          >
+            {selectedId ? (
+              <div className="mx-auto max-w-4xl space-y-4 p-4 md:p-6">
+                <Button asChild variant="ghost" size="sm" className="-ml-2 md:hidden">
+                  <Link href={inboxHref(filters)}>
+                    <ArrowLeft aria-hidden />
+                    Back to list
+                  </Link>
+                </Button>
+                {selected ? (
+                  <OpportunityDetail
+                    opportunity={selected}
+                    sameDomainIds={findSameDomainIds(rows, selected.id)}
+                  />
+                ) : (
+                  <ListEmptyState title="Opportunity not found">
+                    It may have been removed, or the link is wrong.
+                  </ListEmptyState>
+                )}
+              </div>
+            ) : (
+              <p className="flex h-full items-center justify-center p-6 text-sm text-muted-foreground">
+                Select an opportunity to see its details.
+              </p>
+            )}
+          </section>
+        </main>
+      </div>
+    </div>
   );
 }
