@@ -8,17 +8,6 @@ export type OpportunityListItem = Opportunity & { issues: QualityIssue[] };
 
 /** Renders the opportunities in the order it receives them. */
 export function OpportunityList({ items }: { items: OpportunityListItem[] }) {
-  if (items.length === 0) {
-    return (
-      <div className="px-4 py-12 text-center md:px-6">
-        <p className="font-medium">No opportunities yet</p>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Run <code className="font-mono">npm run setup</code> to import the seed data.
-        </p>
-      </div>
-    );
-  }
-
   return (
     <ul className="divide-y">
       {items.map((item) => (
@@ -60,6 +49,16 @@ function OpportunityRow({ item }: { item: OpportunityListItem }) {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+/** Shown in place of the list when there is nothing to show. */
+export function ListEmptyState({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="px-4 py-12 text-center md:px-6">
+      <p className="font-medium">{title}</p>
+      <div className="mt-1 text-sm text-muted-foreground">{children}</div>
     </div>
   );
 }

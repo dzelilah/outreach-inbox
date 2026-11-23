@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import seedRows from "../../data/opportunities.json";
 import {
+  applyFilters,
   compareByRelevance,
   findDuplicateDomains,
   getQualityIssues,
@@ -38,6 +39,20 @@ describe("getQualityIssues", () => {
   it("needs both a contact name and a profile", () => {
     expect(getQualityIssues({ ...row, contactLinkedinUrl: null })).toEqual(["MISSING_CONTACT"]);
     expect(getQualityIssues({ ...row, contactName: null })).toEqual(["MISSING_CONTACT"]);
+  });
+});
+
+describe("applyFilters", () => {
+  const items = seedRows.map((r) => ({ ...r, issues: getQualityIssues(r) }));
+
+  it("hides the 9 low-quality rows by default", () => {
+    const visible = applyFilters(items, { showLowQuality: false });
+    expect(visible).toHaveLength(41);
+    expect(visible.every((item) => item.issues.length === 0)).toBe(true);
+  });
+
+  it("shows all 50 rows when low-quality rows are shown", () => {
+    expect(applyFilters(items, { showLowQuality: true })).toHaveLength(50);
   });
 });
 

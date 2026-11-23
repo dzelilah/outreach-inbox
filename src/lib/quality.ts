@@ -36,6 +36,14 @@ export function getQualityIssues(
   return issues;
 }
 
+/** Filters the user can change. They live in the URL. */
+export type InboxFilters = { showLowQuality: boolean };
+
+/** Keeps the rows the filters allow. Low-quality rows are hidden unless the user asks for them. */
+export function applyFilters<T extends { issues: QualityIssue[] }>(items: T[], filters: InboxFilters) {
+  return items.filter((item) => filters.showLowQuality || item.issues.length === 0);
+}
+
 /**
  * Highest relevance score first. Equal scores go to the higher domain rating,
  * then to the id, so the order is the same on every load.
