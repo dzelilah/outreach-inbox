@@ -63,6 +63,16 @@ Do not change these without the user's approval.
 
 **Persistence.** Status and draft edits are stored in SQLite and survive a reload. Filters and the selected row live in the URL. Do not use localStorage for data. Re-running the seed must not overwrite user edits.
 
+## Keep it simple
+
+The user asked for this explicitly: solve every problem the simplest way that works, and do not over-engineer.
+
+- Start with the plainest tool: a server component, a link, a form, a URL param. Add client state, hooks (`useOptimistic`, `useTransition`, effects), libraries or abstractions only when the plain version has a concrete problem, and name that problem.
+- Extras the user stories do not need (keyboard shortcuts, optimistic UI, extra confirmations, animations) need a clear reason. If unsure, leave them out and mention them as an option.
+- Do not create a helper, component or file for something used once. Business rules are the exception: they always go in `src/lib/`.
+- If a planned feature costs more than it is worth, say so and propose a simpler version before building it.
+- Check: can the developer explain each line in one sentence in a live code review? If not, simplify.
+
 ## Code rules
 
 - Use server components by default. Add `"use client"` only where interactivity needs it.
