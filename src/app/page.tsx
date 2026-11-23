@@ -9,7 +9,14 @@ import {
 } from "@/components/opportunity-list";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/db";
-import { applyFilters, compareByRelevance, getQualityIssues } from "@/lib/quality";
+import {
+  applyFilters,
+  compareByRelevance,
+  getQualityIssues,
+  type InboxFilters,
+  type QualityView,
+} from "@/lib/quality";
+import { qualityViewSchema } from "@/lib/schemas";
 
 export default function InboxPage({ searchParams }: PageProps<"/">) {
   return (
@@ -43,9 +50,8 @@ export default function InboxPage({ searchParams }: PageProps<"/">) {
 }
 
 async function Opportunities({ searchParams }: Pick<PageProps<"/">, "searchParams">) {
-  // Low-quality rows are hidden unless the URL has ?showLow=1.
-  const { showLow } = await searchParams;
-  const filters = { showLowQuality: showLow === "1" };
+  const params = await searchParams;
+  const filters: InboxFilters = { quality: qualityViewSchema.parse(params.quality) };
 
   // The SQLite driver is synchronous. Without connection(), Next.js would run
   // this query at build time and serve the same rows forever.
@@ -63,19 +69,21 @@ async function Opportunities({ searchParams }: Pick<PageProps<"/">, "searchParam
     .map((row) => ({ ...row, issues: getQualityIssues(row) }))
     .sort(compareByRelevance);
   const visible = applyFilters(items, filters);
+  // Each count is the number of rows that view would show.
+  const countFor = (quality: QualityView) => applyFilters(items, { ...filters, quality }).length;
 
   return (
     <>
       <InboxToolbar
-        showLowQuality={filters.showLowQuality}
-        hiddenCount={items.length - visible.length}
+        quality={filters.quality}
+        counts={{ relevant: countFor("relevant"), all: countFor("all"), low: countFor("low") }}
       />
       {visible.length > 0 ? (
         <OpportunityList items={visible} />
       ) : (
         <ListEmptyState title="No opportunities match the filters">
           <Button asChild variant="outline" size="sm" className="mt-3">
-            <Link href="/?showLow=1">Show hidden opportunities</Link>
+            <Link href="/?quality=all">Show all opportunities</Link>
           </Button>
         </ListEmptyState>
       )}

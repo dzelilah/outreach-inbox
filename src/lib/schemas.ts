@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { QUALITY_VIEWS } from "./quality";
 
 const percentage = z.int().min(0).max(100);
 const requiredText = z.string().trim().min(1);
@@ -27,3 +28,6 @@ export const seedOpportunitySchema = z.object({
 });
 
 export type SeedOpportunity = z.infer<typeof seedOpportunitySchema>;
+
+/** The ?quality= URL param. A missing or unknown value falls back to the default view. */
+export const qualityViewSchema = z.enum(QUALITY_VIEWS).catch("relevant");

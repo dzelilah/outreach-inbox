@@ -36,12 +36,24 @@ export function getQualityIssues(
   return issues;
 }
 
-/** Filters the user can change. They live in the URL. */
-export type InboxFilters = { showLowQuality: boolean };
+/**
+ * Which rows the quality filter shows: only rows without issues ("relevant",
+ * the default), every row, or only the low-quality rows.
+ */
+export const QUALITY_VIEWS = ["relevant", "all", "low"] as const;
+export type QualityView = (typeof QUALITY_VIEWS)[number];
 
-/** Keeps the rows the filters allow. Low-quality rows are hidden unless the user asks for them. */
+/** Filters the user can change. They live in the URL. */
+export type InboxFilters = { quality: QualityView };
+
+/** Keeps the rows the filters allow. */
 export function applyFilters<T extends { issues: QualityIssue[] }>(items: T[], filters: InboxFilters) {
-  return items.filter((item) => filters.showLowQuality || item.issues.length === 0);
+  return items.filter((item) => {
+    const lowQuality = item.issues.length > 0;
+    if (filters.quality === "relevant") return !lowQuality;
+    if (filters.quality === "low") return lowQuality;
+    return true;
+  });
 }
 
 /**

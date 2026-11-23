@@ -45,14 +45,21 @@ describe("getQualityIssues", () => {
 describe("applyFilters", () => {
   const items = seedRows.map((r) => ({ ...r, issues: getQualityIssues(r) }));
 
-  it("hides the 9 low-quality rows by default", () => {
-    const visible = applyFilters(items, { showLowQuality: false });
+  it("shows the 41 rows without issues in the relevant view", () => {
+    const visible = applyFilters(items, { quality: "relevant" });
     expect(visible).toHaveLength(41);
     expect(visible.every((item) => item.issues.length === 0)).toBe(true);
   });
 
-  it("shows all 50 rows when low-quality rows are shown", () => {
-    expect(applyFilters(items, { showLowQuality: true })).toHaveLength(50);
+  it("shows all 50 rows in the all view", () => {
+    expect(applyFilters(items, { quality: "all" })).toHaveLength(50);
+  });
+
+  it("shows only the 9 low-quality rows in the low view", () => {
+    const visible = applyFilters(items, { quality: "low" });
+    expect(visible.map((item) => item.id).sort()).toEqual(
+      ["op_01", "op_03", "op_04", "op_05", "op_07", "op_08", "op_16", "op_25", "op_30"],
+    );
   });
 });
 
