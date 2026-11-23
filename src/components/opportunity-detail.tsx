@@ -1,10 +1,27 @@
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, TriangleAlert } from "lucide-react";
 import { QualityIssueBadge, StatusBadge } from "@/components/badges";
 import { DraftEditor } from "@/components/draft-editor";
 import type { OpportunityListItem } from "@/components/opportunity-list";
+import { hasContact } from "@/lib/quality";
 
-export function OpportunityDetail({ opportunity }: { opportunity: OpportunityListItem }) {
+type OpportunityDetailProps = {
+  opportunity: OpportunityListItem;
+  /** Other opportunities on the same domain. */
+  sameDomainIds: string[];
+};
+
+export function OpportunityDetail({ opportunity, sameDomainIds }: OpportunityDetailProps) {
   const { contactName, contactRole, contactLinkedinUrl } = opportunity;
+
+  const warnings: string[] = [];
+  if (opportunity.alreadyContacted) {
+    warnings.push("Already contacted. Approving would send them a second message.");
+  }
+  if (sameDomainIds.length > 0) {
+    warnings.push(
+      `Same domain as ${sameDomainIds.join(", ")}. Coordinate so the site is not contacted twice.`,
+    );
+  }
 
   return (
     <article className="space-y-6">
@@ -22,6 +39,20 @@ export function OpportunityDetail({ opportunity }: { opportunity: OpportunityLis
           </div>
         )}
       </header>
+
+      {warnings.length > 0 && (
+        <ul className="space-y-2">
+          {warnings.map((warning) => (
+            <li
+              key={warning}
+              className="flex gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900"
+            >
+              <TriangleAlert aria-hidden className="mt-0.5 size-4 shrink-0" />
+              {warning}
+            </li>
+          ))}
+        </ul>
+      )}
 
       <dl className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Fact label="Relevance score" value={opportunity.relevanceScore} />
@@ -51,8 +82,10 @@ export function OpportunityDetail({ opportunity }: { opportunity: OpportunityLis
       <DraftEditor
         key={opportunity.id}
         id={opportunity.id}
+        status={opportunity.status}
         savedDraft={opportunity.draft}
         originalDraft={opportunity.originalDraft}
+        canApprove={hasContact(opportunity)}
       />
     </article>
   );

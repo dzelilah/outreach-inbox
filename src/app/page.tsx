@@ -15,6 +15,7 @@ import { inboxHref } from "@/lib/inbox-url";
 import {
   applyFilters,
   compareByRelevance,
+  findSameDomainIds,
   getQualityIssues,
   type InboxFilters,
   type QualityView,
@@ -113,7 +114,10 @@ async function Inbox({ searchParams }: Pick<PageProps<"/">, "searchParams">) {
               </Link>
             </Button>
             {selected ? (
-              <OpportunityDetail opportunity={selected} />
+              <OpportunityDetail
+                opportunity={selected}
+                sameDomainIds={findSameDomainIds(rows, selected.id)}
+              />
             ) : (
               <ListEmptyState title="Opportunity not found">
                 It may have been removed, or the link is wrong.

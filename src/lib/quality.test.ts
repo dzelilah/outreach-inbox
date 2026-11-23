@@ -4,6 +4,7 @@ import {
   applyFilters,
   compareByRelevance,
   findDuplicateDomains,
+  findSameDomainIds,
   getQualityIssues,
   type QualityIssue,
 } from "./quality";
@@ -83,6 +84,11 @@ describe("compareByRelevance", () => {
 describe("findDuplicateDomains", () => {
   it("finds the two hubspot pages in the seed data", () => {
     expect([...findDuplicateDomains(seedRows)]).toEqual([["blog.hubspot.com", ["op_11", "op_31"]]]);
+  });
+
+  it("lists the other opportunity on the same domain", () => {
+    expect(findSameDomainIds(seedRows, "op_11")).toEqual(["op_31"]);
+    expect(findSameDomainIds(seedRows, "op_35")).toEqual([]);
   });
 
   it("ignores case and a leading www.", () => {

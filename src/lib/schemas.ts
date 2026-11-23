@@ -34,11 +34,17 @@ export const qualityViewSchema = z.enum(QUALITY_VIEWS).catch("relevant");
 
 const MAX_DRAFT_LENGTH = 5000;
 
-/** Input of the saveDraft Server Action. The text is saved exactly as typed. */
-export const saveDraftSchema = z.object({
+/** Input of the saveDraft and approveDraft Server Actions. The text is saved exactly as typed. */
+export const draftInputSchema = z.object({
   id: requiredText,
   draft: z
     .string()
     .max(MAX_DRAFT_LENGTH, `The draft can be at most ${MAX_DRAFT_LENGTH} characters.`)
     .refine((draft) => draft.trim() !== "", "The draft cannot be empty."),
+});
+
+/** Input of the setStatus Server Action. APPROVED is missing on purpose: approving goes through approveDraft, which saves the text too. */
+export const setStatusSchema = z.object({
+  id: requiredText,
+  status: z.enum(["TO_REVIEW", "SKIPPED", "DONE"]),
 });

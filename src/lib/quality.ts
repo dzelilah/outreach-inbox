@@ -25,13 +25,17 @@ export type QualityIssue = keyof typeof QUALITY_ISSUE_LABELS;
 const normalize = (value: string) => value.trim().toLowerCase();
 const relevantTopics = new Set(RELEVANT_TOPICS.map(normalize));
 
+/** Without a name and a profile there is nobody to address the message to. */
+export function hasContact(opportunity: Pick<Opportunity, "contactName" | "contactLinkedinUrl">) {
+  return Boolean(opportunity.contactName && opportunity.contactLinkedinUrl);
+}
+
 export function getQualityIssues(
   opportunity: Pick<Opportunity, "domainRating" | "topic" | "contactName" | "contactLinkedinUrl">,
 ): QualityIssue[] {
   const issues: QualityIssue[] = [];
   if (opportunity.domainRating < MIN_DOMAIN_RATING) issues.push("LOW_DOMAIN_RATING");
-  // Without a name and a profile there is nobody to address the message to.
-  if (!opportunity.contactName || !opportunity.contactLinkedinUrl) issues.push("MISSING_CONTACT");
+  if (!hasContact(opportunity)) issues.push("MISSING_CONTACT");
   if (!relevantTopics.has(normalize(opportunity.topic))) issues.push("OFF_TOPIC");
   return issues;
 }
@@ -79,4 +83,12 @@ export function findDuplicateDomains(opportunities: Pick<Opportunity, "id" | "do
     idsByDomain.set(key, [...(idsByDomain.get(key) ?? []), id]);
   }
   return new Map([...idsByDomain].filter(([, ids]) => ids.length > 1));
+}
+
+/** Ids of the other opportunities on the same domain as `id`, so outreach can be coordinated. */
+export function findSameDomainIds(opportunities: Pick<Opportunity, "id" | "domain">[], id: string) {
+  for (const ids of findDuplicateDomains(opportunities).values()) {
+    if (ids.includes(id)) return ids.filter((other) => other !== id);
+  }
+  return [];
 }
