@@ -4,13 +4,17 @@ A small inbox for reviewing link-building opportunities: see the best matches fi
 
 All data is fake. Nothing is ever sent: the app has no email sending, and it does not fetch or contact any site from the data. The only network call the app can make is the optional AI rewrite with your own Anthropic key (see [AI rewrite](#ai-rewrite)). It is off by default.
 
+**Video walkthrough (1:42):** [Loom](https://www.loom.com/share/8d24cd13641940279048c41d1cb4ea30). The recording is automated: Claude Code scripted the clicks and captions, running the real app.
+
 ## Run it
 
 Requires Node.js 20.9 or newer (built with Node 24).
 
 ```bash
+git clone https://github.com/dzelilah/outreach-inbox.git
+cd outreach-inbox
 npm install
-cp .env.example .env      # Windows PowerShell: Copy-Item .env.example .env
+cp .env.example .env      # Windows Command Prompt: copy .env.example .env
 npm run setup             # creates dev.db and imports the 50 rows
 npm run dev               # http://localhost:3000
 ```
