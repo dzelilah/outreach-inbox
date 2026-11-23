@@ -10,6 +10,7 @@ import { DraftEditor } from "@/components/draft-editor";
 import type { OpportunityListItem } from "@/components/opportunity-list";
 import { explainScore, type ScoreSignal } from "@/lib/explain";
 import { hasContact } from "@/lib/quality";
+import { getRewriter } from "@/lib/rewrite";
 
 type OpportunityDetailProps = {
   opportunity: OpportunityListItem;
@@ -112,6 +113,7 @@ export function OpportunityDetail({ opportunity, sameDomainIds }: OpportunityDet
           savedDraft={opportunity.draft}
           originalDraft={opportunity.originalDraft}
           canApprove={hasContact(opportunity)}
+          rewriterName={getRewriter().name}
         />
       </section>
     </article>

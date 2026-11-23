@@ -3,6 +3,7 @@
 import { refresh } from "next/cache";
 import { prisma } from "@/lib/db";
 import { hasContact } from "@/lib/quality";
+import { getRewriter } from "@/lib/rewrite";
 import { bulkStatusSchema, draftInputSchema, setStatusSchema } from "@/lib/schemas";
 import { statusAfterDraftEdit } from "@/lib/status";
 
@@ -90,4 +91,32 @@ export async function bulkUpdateStatus(formData: FormData): Promise<ActionResult
     ok: true,
     message: status === "SKIPPED" ? `Skipped ${rows}` : `Moved ${rows} back to review`,
   };
+}
+
+export type RewriteResult = { ok: true; text: string } | { ok: false; error: string };
+
+/**
+ * Rewrites the text that is in the editor. The result is only returned to the
+ * editor as an unsaved change: nothing is saved, approved or sent here.
+ */
+export async function rewriteDraft(input: { id: string; draft: string }): Promise<RewriteResult> {
+  const parsed = draftInputSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
+  const { id, draft } = parsed.data;
+
+  // The facts the rewrite must keep come from the database, not from the browser.
+  const opportunity = await prisma.opportunity.findUnique({ where: { id } });
+  if (!opportunity) return { ok: false, error: "This opportunity no longer exists." };
+
+  try {
+    const text = await getRewriter().rewrite({
+      draft,
+      contactName: opportunity.contactName,
+      linkingPageTitle: opportunity.linkingPageTitle,
+      competitorLinked: opportunity.competitorLinked,
+    });
+    return { ok: true, text };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : "The rewrite failed." };
+  }
 }

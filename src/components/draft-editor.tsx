@@ -1,8 +1,9 @@
 "use client";
 
+import { Sparkles } from "lucide-react";
 import { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
-import { type ActionResult, approveDraft, saveDraft, setStatus } from "@/app/actions";
+import { type ActionResult, approveDraft, rewriteDraft, saveDraft, setStatus } from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import type { Status } from "@/generated/prisma/enums";
@@ -13,13 +14,16 @@ type DraftEditorProps = {
   savedDraft: string;
   originalDraft: string;
   canApprove: boolean;
+  /** Which rewriter the button uses, e.g. "mock". */
+  rewriterName: string;
 };
 
 /**
  * Edits the draft and sets the status. Approve lives here because it sends the
  * text that is in the editor right now. Nothing is saved automatically.
  */
-export function DraftEditor({ id, status, savedDraft, originalDraft, canApprove }: DraftEditorProps) {
+export function DraftEditor(props: DraftEditorProps) {
+  const { id, status, savedDraft, originalDraft, canApprove, rewriterName } = props;
   const [text, setText] = useState(savedDraft);
   const [isPending, startAction] = useTransition();
   const isDirty = text !== savedDraft;
@@ -42,6 +46,20 @@ export function DraftEditor({ id, status, savedDraft, originalDraft, canApprove 
     });
   }
 
+  // The rewrite only replaces the text in the editor as an unsaved change;
+  // the user reviews it and then saves, approves or discards it.
+  function rewrite() {
+    startAction(async () => {
+      const result = await rewriteDraft({ id, draft: text });
+      if (result.ok) {
+        setText(result.text);
+        toast.success("Draft rewritten. Review it, then save or approve it.");
+      } else {
+        toast.error(result.error);
+      }
+    });
+  }
+
   return (
     <div className="space-y-6">
       <section className="space-y-2">
@@ -50,7 +68,7 @@ export function DraftEditor({ id, status, savedDraft, originalDraft, canApprove 
             Outreach draft
           </label>
           {isPending ? (
-            <span className="text-xs text-muted-foreground">Saving…</span>
+            <span className="text-xs text-muted-foreground">Working…</span>
           ) : (
             isDirty && <span className="text-xs font-medium text-amber-700">Unsaved changes</span>
           )}
@@ -80,6 +98,10 @@ export function DraftEditor({ id, status, savedDraft, originalDraft, canApprove 
               Reset to original
             </Button>
           )}
+          <Button variant="outline" className="sm:ml-auto" onClick={rewrite} disabled={isEmpty || isPending}>
+            <Sparkles aria-hidden />
+            Rewrite with AI ({rewriterName})
+          </Button>
         </div>
       </section>
 
