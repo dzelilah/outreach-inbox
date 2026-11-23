@@ -31,3 +31,14 @@ export type SeedOpportunity = z.infer<typeof seedOpportunitySchema>;
 
 /** The ?quality= URL param. A missing or unknown value falls back to the default view. */
 export const qualityViewSchema = z.enum(QUALITY_VIEWS).catch("relevant");
+
+const MAX_DRAFT_LENGTH = 5000;
+
+/** Input of the saveDraft Server Action. The text is saved exactly as typed. */
+export const saveDraftSchema = z.object({
+  id: requiredText,
+  draft: z
+    .string()
+    .max(MAX_DRAFT_LENGTH, `The draft can be at most ${MAX_DRAFT_LENGTH} characters.`)
+    .refine((draft) => draft.trim() !== "", "The draft cannot be empty."),
+});

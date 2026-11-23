@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { inboxHref } from "@/lib/inbox-url";
 import { QUALITY_VIEWS, type QualityView } from "@/lib/quality";
 import { cn } from "@/lib/utils";
 
@@ -12,10 +13,12 @@ type InboxToolbarProps = {
   quality: QualityView;
   /** How many rows each view would show. */
   counts: Record<QualityView, number>;
+  /** Kept in the links, so changing the view keeps the open opportunity. */
+  selectedId?: string;
 };
 
 /** Each view is a plain link, so the choice lives in the URL. */
-export function InboxToolbar({ quality, counts }: InboxToolbarProps) {
+export function InboxToolbar({ quality, counts, selectedId }: InboxToolbarProps) {
   return (
     <div className="sticky top-0 z-10 flex h-12 items-center border-b bg-background px-4 md:px-6">
       <nav aria-label="Filter by quality" className="inline-flex rounded-lg bg-muted p-0.5">
@@ -24,8 +27,7 @@ export function InboxToolbar({ quality, counts }: InboxToolbarProps) {
           return (
             <Link
               key={view}
-              // The default view needs no URL param.
-              href={view === "relevant" ? "/" : `/?quality=${view}`}
+              href={inboxHref({ quality: view, id: selectedId })}
               aria-current={selected ? "true" : undefined}
               className={cn(
                 "rounded-md px-2.5 py-1 text-sm",

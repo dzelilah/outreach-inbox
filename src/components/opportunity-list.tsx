@@ -1,30 +1,50 @@
+import Link from "next/link";
 import { QualityIssueBadge, StatusBadge } from "@/components/badges";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Opportunity } from "@/generated/prisma/client";
-import type { QualityIssue } from "@/lib/quality";
+import { inboxHref } from "@/lib/inbox-url";
+import type { QualityIssue, QualityView } from "@/lib/quality";
 import { cn } from "@/lib/utils";
 
 export type OpportunityListItem = Opportunity & { issues: QualityIssue[] };
 
-/** Renders the opportunities in the order it receives them. */
-export function OpportunityList({ items }: { items: OpportunityListItem[] }) {
+type OpportunityListProps = {
+  items: OpportunityListItem[];
+  quality: QualityView;
+  selectedId?: string;
+};
+
+/** Renders the opportunities in the order it receives them. Each row links to its detail. */
+export function OpportunityList({ items, quality, selectedId }: OpportunityListProps) {
   return (
     <ul className="divide-y">
       {items.map((item) => (
         <li key={item.id}>
-          <OpportunityRow item={item} />
+          <OpportunityRow
+            item={item}
+            href={inboxHref({ quality, id: item.id })}
+            selected={item.id === selectedId}
+          />
         </li>
       ))}
     </ul>
   );
 }
 
-function OpportunityRow({ item }: { item: OpportunityListItem }) {
+function OpportunityRow(props: { item: OpportunityListItem; href: string; selected: boolean }) {
+  const { item, href, selected } = props;
   // Low-quality rows stay in the list but are dimmed; the badges say why.
   const muted = item.issues.length > 0 && "text-muted-foreground";
 
   return (
-    <div className="flex gap-3 px-4 py-3 md:px-6">
+    <Link
+      href={href}
+      aria-current={selected ? "true" : undefined}
+      className={cn(
+        "flex gap-3 px-4 py-3 hover:bg-muted/50 md:px-6",
+        selected && "bg-muted hover:bg-muted",
+      )}
+    >
       <div className="w-10 shrink-0 text-center">
         <p className={cn("text-lg leading-6 font-semibold tabular-nums", muted)}>
           {item.relevanceScore}
@@ -49,7 +69,7 @@ function OpportunityRow({ item }: { item: OpportunityListItem }) {
           </div>
         )}
       </div>
-    </div>
+    </Link>
   );
 }
 
