@@ -132,4 +132,3 @@ Work in this order:
 - Explain important decisions and trade-offs in plain words, and flag risks before risky changes.
 - When debugging, find the real cause, explain it, apply the smallest fix and verify it.
 - Ask when a requirement is ambiguous instead of guessing.
-- Track the time spent. The README reports it honestly; the assignment suggests about 2 hours with a 3-hour cap.
