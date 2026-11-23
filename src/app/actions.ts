@@ -3,7 +3,7 @@
 import { refresh } from "next/cache";
 import { prisma } from "@/lib/db";
 import { hasContact } from "@/lib/quality";
-import { draftInputSchema, setStatusSchema } from "@/lib/schemas";
+import { bulkStatusSchema, draftInputSchema, setStatusSchema } from "@/lib/schemas";
 import { statusAfterDraftEdit } from "@/lib/status";
 
 /** Every action returns a message for the toast, or an error to show instead. */
@@ -68,4 +68,26 @@ export async function setStatus(input: {
 
   refresh();
   return { ok: true, message: STATUS_MESSAGES[status] };
+}
+
+/** Skip or move back to review every checked row. Called by the list form with its FormData. */
+export async function bulkUpdateStatus(formData: FormData): Promise<ActionResult> {
+  const parsed = bulkStatusSchema.safeParse({
+    ids: formData.getAll("ids"),
+    status: formData.get("status"),
+  });
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
+  const { ids, status } = parsed.data;
+
+  const { count } = await prisma.opportunity.updateMany({
+    where: { id: { in: ids } },
+    data: { status },
+  });
+
+  refresh();
+  const rows = count === 1 ? "1 opportunity" : `${count} opportunities`;
+  return {
+    ok: true,
+    message: status === "SKIPPED" ? `Skipped ${rows}` : `Moved ${rows} back to review`,
+  };
 }

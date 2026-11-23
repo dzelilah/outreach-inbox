@@ -1,5 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { draftInputSchema, qualityViewSchema, setStatusSchema } from "./schemas";
+import { bulkStatusSchema, draftInputSchema, qualityViewSchema, setStatusSchema } from "./schemas";
+
+describe("bulkStatusSchema", () => {
+  it("accepts Skip and Move to review for selected ids", () => {
+    expect(bulkStatusSchema.safeParse({ ids: ["op_01", "op_03"], status: "SKIPPED" }).success).toBe(true);
+    expect(bulkStatusSchema.safeParse({ ids: ["op_01"], status: "TO_REVIEW" }).success).toBe(true);
+  });
+
+  it("rejects bulk approve and an empty selection", () => {
+    expect(bulkStatusSchema.safeParse({ ids: ["op_01"], status: "APPROVED" }).success).toBe(false);
+    expect(bulkStatusSchema.safeParse({ ids: [], status: "SKIPPED" }).success).toBe(false);
+  });
+});
 
 describe("setStatusSchema", () => {
   it("rejects APPROVED, which must go through approveDraft", () => {

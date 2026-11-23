@@ -43,6 +43,15 @@ export const draftInputSchema = z.object({
     .refine((draft) => draft.trim() !== "", "The draft cannot be empty."),
 });
 
+/**
+ * Input of the bulkUpdateStatus Server Action. Only Skip and Move to review:
+ * there is no bulk approve, because a human approves every message one by one.
+ */
+export const bulkStatusSchema = z.object({
+  ids: z.array(requiredText).min(1, "Select at least one opportunity."),
+  status: z.enum(["SKIPPED", "TO_REVIEW"]),
+});
+
 /** Input of the setStatus Server Action. APPROVED is missing on purpose: approving goes through approveDraft, which saves the text too. */
 export const setStatusSchema = z.object({
   id: requiredText,

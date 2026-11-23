@@ -2,6 +2,7 @@ import { ArrowLeft, Inbox as InboxIcon } from "lucide-react";
 import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
+import { BulkSelectForm } from "@/components/bulk-select-form";
 import { InboxToolbar } from "@/components/inbox-toolbar";
 import { OpportunityDetail } from "@/components/opportunity-detail";
 import {
@@ -103,7 +104,10 @@ async function Inbox({ searchParams }: Pick<PageProps<"/">, "searchParams">) {
           counts={{ relevant: countFor("relevant"), all: countFor("all"), low: countFor("low") }}
         />
         {visible.length > 0 ? (
-          <OpportunityList items={visible} filters={filters} selectedId={selectedId} />
+          // The key changes with the filters, so changing a filter starts a fresh selection.
+          <BulkSelectForm key={inboxHref(filters)}>
+            <OpportunityList items={visible} filters={filters} selectedId={selectedId} />
+          </BulkSelectForm>
         ) : (
           <ListEmptyState title="No opportunities match the filters">
             <Button asChild variant="outline" size="sm" className="mt-3">

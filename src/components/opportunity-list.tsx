@@ -19,15 +19,31 @@ type OpportunityListProps = {
 export function OpportunityList({ items, filters, selectedId }: OpportunityListProps) {
   return (
     <ul className="space-y-1 p-2">
-      {items.map((item) => (
-        <li key={item.id}>
-          <OpportunityRow
-            item={item}
-            href={inboxHref(filters, item.id)}
-            selected={item.id === selectedId}
-          />
-        </li>
-      ))}
+      {items.map((item) => {
+        const selected = item.id === selectedId;
+        return (
+          <li
+            key={item.id}
+            className={cn(
+              "flex rounded-lg hover:bg-muted/60",
+              // The open row is a tinted tile, like the active item in the Moonrank sidebar.
+              selected && "bg-accent hover:bg-accent",
+            )}
+          >
+            {/* Outside the link, so ticking the box does not open the row. Read by the bulk form. */}
+            <label className="flex shrink-0 cursor-pointer items-start py-4 pl-3 md:pl-4">
+              <input
+                type="checkbox"
+                name="ids"
+                value={item.id}
+                aria-label={`Select ${item.domain}`}
+                className="size-4 accent-primary"
+              />
+            </label>
+            <OpportunityRow item={item} href={inboxHref(filters, item.id)} selected={selected} />
+          </li>
+        );
+      })}
     </ul>
   );
 }
@@ -41,11 +57,7 @@ function OpportunityRow(props: { item: OpportunityListItem; href: string; select
     <Link
       href={href}
       aria-current={selected ? "true" : undefined}
-      className={cn(
-        "flex gap-3 rounded-lg px-3 py-3 hover:bg-muted/60 md:px-4",
-        // The open row is a tinted tile, like the active item in the Moonrank sidebar.
-        selected && "bg-accent hover:bg-accent",
-      )}
+      className="flex min-w-0 flex-1 gap-3 py-3 pr-3 pl-2 md:pr-4"
     >
       <div className="flex w-11 shrink-0 flex-col items-center gap-1">
         <span
