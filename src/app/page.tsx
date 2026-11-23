@@ -21,6 +21,7 @@ import {
   type QualityView,
 } from "@/lib/quality";
 import { qualityViewSchema } from "@/lib/schemas";
+import { countLeftToReview } from "@/lib/status";
 import { cn } from "@/lib/utils";
 
 const LIST_WIDTH = "md:w-[26rem] md:shrink-0 lg:w-[32rem]";
@@ -86,6 +87,7 @@ async function Inbox({ searchParams }: Pick<PageProps<"/">, "searchParams">) {
         className={cn("w-full md:block md:overflow-y-auto md:border-r", LIST_WIDTH, selectedId && "hidden")}
       >
         <InboxToolbar
+          leftToReview={countLeftToReview(visible)}
           quality={filters.quality}
           selectedId={selectedId}
           counts={{ relevant: countFor("relevant"), all: countFor("all"), low: countFor("low") }}

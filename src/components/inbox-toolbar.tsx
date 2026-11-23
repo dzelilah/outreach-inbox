@@ -10,6 +10,8 @@ const QUALITY_VIEW_LABELS: Record<QualityView, string> = {
 };
 
 type InboxToolbarProps = {
+  /** Rows still to review in the current view. */
+  leftToReview: number;
   quality: QualityView;
   /** How many rows each view would show. */
   counts: Record<QualityView, number>;
@@ -18,9 +20,19 @@ type InboxToolbarProps = {
 };
 
 /** Each view is a plain link, so the choice lives in the URL. */
-export function InboxToolbar({ quality, counts, selectedId }: InboxToolbarProps) {
+export function InboxToolbar({ leftToReview, quality, counts, selectedId }: InboxToolbarProps) {
   return (
-    <div className="sticky top-0 z-10 flex h-12 items-center border-b bg-background px-4 md:px-6">
+    // On wide screens the counter and the views share one row; on narrow screens they stack.
+    <div className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b bg-background px-4 py-2 md:px-6">
+      <p aria-live="polite" className="text-sm">
+        {leftToReview > 0 ? (
+          <>
+            <span className="font-semibold tabular-nums">{leftToReview}</span> left to review
+          </>
+        ) : (
+          <span className="font-medium">All caught up</span>
+        )}
+      </p>
       <nav aria-label="Filter by quality" className="inline-flex rounded-lg bg-muted p-0.5">
         {QUALITY_VIEWS.map((view) => {
           const selected = view === quality;
